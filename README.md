@@ -53,8 +53,8 @@ company-it-ticket-system/
 Create a secure configuration file named `server/.env` containing the following architecture labels:
 ```env
 PORT=5000
-MONGODB_URI=your_mongodb_atlas_connection_string
-JWT_SECRET=your_custom_session_signing_secret
+MONGODB_URI=mongodb_atlas_connection_string
+JWT_SECRET=custom_session_signing_secret
 ```
 
 ### 2. Launch Instructions
