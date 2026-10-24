@@ -1,32 +1,34 @@
 # 🛠️ Corporate IT Support Ticketing System
 
-A production-ready full-stack **MERN Architecture Application** designed to manage technical issues within a corporate environment. This application features secure user accounts, password encryption, and role-based access control separating staff workflows from administrative tasks.
+A full-stack **MERN-style application** for reporting and tracking technical issues. It uses a React/Vite client, an Express API, and MongoDB through Mongoose. Passwords are hashed with bcryptjs, and login issues a JWT; ticket API routes do not currently verify that token or enforce user roles.
 
 ---
 
 ## 👥 User Roles & Access Boundaries
-*   **Employee Component:** Can register, log in, submit a new technical issue ticket, and review a customized history log of submitted tickets.
-*   **IT Admin Component:** Accesses a global administrative command console to review all active corporate issues, apply data filter states, and authorize closures by marking tickets as "Fixed".
+*   **Employee Component:** Can register, log in, submit a technical issue, and view the ticket list. The list is global rather than limited to the signed-in employee's tickets.
+*   **IT Admin Component:** Can view and filter the global ticket list and mark pending tickets as "Fixed". The admin action is hidden in the employee interface, but the API does not enforce this restriction.
+*   **Role selection:** Registration allows the user to select `employee` or `admin`; the server accepts the submitted role. Do not treat the current role-based UI as an authorization boundary.
 
 ---
 
 ## 📝 User Stories & System Acceptance Metrics
 *   **Story:** As an Employee, I want to report a technical system failure so that the IT department can address it.
-    *   *Acceptance Criteria:* Validation parameters require both title and description input fields. Unauthorized sessions are blocked from submission routes.
+    *   *Current behavior:* The client checks that title and description are present. The ticket schema also requires both fields. The API does not require an authenticated session.
 *   **Story:** As an IT Admin, I want to mark open issues as resolved so that historical tracking remains accurate.
-    *   *Acceptance Criteria:* The administrative execution button is strictly hidden from regular employee sessions. Clicking the button updates the record field status globally across the cloud data matrix.
+    *   *Current behavior:* The UI only shows the action to users with the `admin` role, and clicking it changes the ticket status to `Fixed`. The API endpoint does not verify the caller's role.
 
 ---
 
 ## 🔌 Core API Documentation Contract
 
-| HTTP Method & Path | Security Layer | Functional Task | Target Response Status |
+| HTTP Method & Path | Access in Current Code | Functional Task | Success Response Status |
 | :--- | :--- | :--- | :--- |
-| `POST /api/auth/register` | Public Access | Registers a new user account profile | `201 Created` |
-| `POST /api/auth/login` | Public Access | Authorizes session and returns a secure JWT pass | `200 OK` |
-| `POST /api/tickets` | Logged-in Employee | Inserts a new support problem entry | `201 Created` |
-| `GET /api/tickets` | Logged-in Session | Fetches matching collection models from Atlas | `200 OK` |
-| `PATCH /api/tickets/:id/fix` | Verified IT Admin | Modifies ticket data status field to "Fixed" | `200 OK` |
+| `POST /api/auth/register` | Public; role may be supplied | Registers an account and hashes its password | `201 Created` |
+| `POST /api/auth/login` | Public | Verifies credentials and returns a one-day JWT and user details | `200 OK` |
+| `POST /api/tickets` | Public; no token verification | Creates a ticket with `Pending` status | `201 Created` |
+| `GET /api/tickets` | Public; returns all tickets | Lists tickets newest first | `200 OK` |
+| `PATCH /api/tickets/:id/fix` | Public; no role verification | Changes a ticket status to `Fixed` | `200 OK` |
+| `GET /api/health` | Public | Returns a backend health message | `200 OK` |
 
 ---
 
@@ -35,14 +37,14 @@ A production-ready full-stack **MERN Architecture Application** designed to mana
 company-it-ticket-system/
 ├── client/              # React Interface Layer (Vite Setup)
 │   ├── src/
-│   │   ├── services/    # Centralized Axios API Client
-│   │   └── App.jsx      # Navigation Routes & Workspace Dashboards
+│   │   ├── services/api.js # Axios API client
+│   │   └── App.jsx      # Login, registration, and ticket dashboard
 ├── server/              # Node/Express Application Interface
+│   ├── server.js         # Express app, MongoDB connection, and API mounts
 │   ├── src/
 │   │   ├── models/      # Mongoose Schema Definitions
-│   │   ├── controllers/ # Encrypted Logic Engines
-│   │   └── routes/      # Endpoints URL Mappings
-└── .gitignore           # Project File Safety Shield
+│   │   ├── controllers/ # Authentication and ticket handlers
+│   │   └── routes/      # API endpoint mappings
 ```
 
 ---
@@ -50,12 +52,13 @@ company-it-ticket-system/
 ## ⚙️ Environmental Parameters & Quick Start Setup
 
 ### 1. Server Configuration
-Create a secure configuration file named `server/.env` containing the following architecture labels:
+Create `server/.env` with a MongoDB connection string and a private JWT signing secret:
 ```env
 PORT=5000
-MONGODB_URI=mongodb_atlas_connection_string
-JWT_SECRET=custom_session_signing_secret
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_private_signing_secret
 ```
+`PORT` defaults to `5000` if omitted. The server connects to MongoDB using `MONGODB_URI`.
 
 ### 2. Launch Instructions
 To run the full application ecosystem simultaneously on your computer, execute these commands in two separate terminal windows:
@@ -72,3 +75,7 @@ To run the full application ecosystem simultaneously on your computer, execute t
     npm install
     npm run dev
     ```
+
+Before running the client locally, set the `baseURL` in `client/src/services/api.js` to `http://localhost:5000/api`. The client currently has a hard-coded hosted origin and its request paths omit the `/api` prefix used by this server, so it will not reach this local API as currently configured.
+
+The client also provides `npm run build` and `npm run lint`. The server package does not currently define a test script.
