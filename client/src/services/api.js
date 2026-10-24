@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'https://company-it-ticket-system-capstone-project.onrender.com'
+    baseURL: 'https://company-it-ticket-system-capstone-project.onrender.com/api'
 });
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');

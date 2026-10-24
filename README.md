@@ -76,6 +76,6 @@ To run the full application ecosystem simultaneously on your computer, execute t
     npm run dev
     ```
 
-Before running the client locally, set the `baseURL` in `client/src/services/api.js` to `http://localhost:5000/api`. The client currently has a hard-coded hosted origin and its request paths omit the `/api` prefix used by this server, so it will not reach this local API as currently configured.
+The client uses the hosted Render API by default. Before running the client locally, set the `baseURL` in `client/src/services/api.js` to `http://localhost:5000/api`.
 
 The client also provides `npm run build` and `npm run lint`. The server package does not currently define a test script.
